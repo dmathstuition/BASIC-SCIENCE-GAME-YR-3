@@ -1,0 +1,1109 @@
+import { useState, useEffect, useCallback } from "react";
+
+const ROUNDS = [
+  {
+    id: "seed-parts",
+    title: "Parts of a Seed",
+    icon: "🌰",
+    instruction: "Tap the correct part of the seed for each question.",
+  },
+  {
+    id: "dispersal",
+    title: "Seed Dispersal",
+    icon: "💨",
+    instruction: "Match each seed to how it travels to a new place.",
+  },
+  {
+    id: "germination-order",
+    title: "Germination Stages",
+    icon: "🌱",
+    instruction: "Put the germination stages in the correct order (1st → 4th).",
+  },
+  {
+    id: "plant-needs",
+    title: "What Plants Need",
+    icon: "☀️",
+    instruction: "Answer each question about what plants need to grow.",
+  },
+  {
+    id: "true-false",
+    title: "Plant Care",
+    icon: "🌻",
+    instruction: "Decide if each statement is TRUE or FALSE.",
+  },
+];
+
+// ROUND 1 DATA
+const seedPartQuestions = [
+  {
+    question: "Which part protects the baby plant inside the seed?",
+    options: ["Seed Coat", "Embryo", "Food Store"],
+    correct: 0,
+    explanation: "The seed coat is a hard outer shell — like a tiny suit of armour!",
+  },
+  {
+    question: "Which part is the baby plant that will grow into a new plant?",
+    options: ["Food Store", "Seed Coat", "Embryo"],
+    correct: 2,
+    explanation: "The embryo contains the radicle (baby root) and plumule (baby shoot).",
+  },
+  {
+    question: "Which part feeds the baby plant until it can make its own food?",
+    options: ["Embryo", "Food Store", "Seed Coat"],
+    correct: 1,
+    explanation: "The food store (cotyledon) contains starch and nutrients for early growth.",
+  },
+  {
+    question: "The radicle and plumule are found inside which part?",
+    options: ["Seed Coat", "Food Store", "Embryo"],
+    correct: 2,
+    explanation: "The embryo holds the radicle (first root) and plumule (first shoot).",
+  },
+];
+
+// ROUND 2 DATA
+const dispersalQuestions = [
+  {
+    seed: "Dandelion",
+    emoji: "🌼",
+    options: ["Wind 💨", "Water 💧", "Animals 🐿️", "Explosion 💥"],
+    correct: 0,
+    explanation: "Dandelion seeds have tiny parachutes that catch the wind!",
+  },
+  {
+    seed: "Coconut",
+    emoji: "🥥",
+    options: ["Wind 💨", "Water 💧", "Animals 🐿️", "Explosion 💥"],
+    correct: 1,
+    explanation: "Coconuts have waterproof shells and can float across oceans!",
+  },
+  {
+    seed: "Burdock",
+    emoji: "🌿",
+    options: ["Wind 💨", "Water 💧", "Animals 🐿️", "Explosion 💥"],
+    correct: 2,
+    explanation: "Burdock seeds have tiny hooks that stick to animal fur (and your socks!).",
+  },
+  {
+    seed: "Pea Pod",
+    emoji: "🫛",
+    options: ["Wind 💨", "Water 💧", "Animals 🐿️", "Explosion 💥"],
+    correct: 3,
+    explanation: "Pea pods dry out in the sun and burst open, flinging seeds away!",
+  },
+  {
+    seed: "Sycamore",
+    emoji: "🍁",
+    options: ["Wind 💨", "Water 💧", "Animals 🐿️", "Explosion 💥"],
+    correct: 0,
+    explanation: "Sycamore seeds spin like tiny helicopters in the wind!",
+  },
+];
+
+// ROUND 3 DATA
+const germinationStages = [
+  { id: "absorb", label: "Seed absorbs water and swells", emoji: "💧", correctOrder: 0 },
+  { id: "root", label: "Radicle (root) pushes down into soil", emoji: "⬇️", correctOrder: 1 },
+  { id: "shoot", label: "Plumule (shoot) grows up towards light", emoji: "⬆️", correctOrder: 2 },
+  { id: "leaves", label: "First leaves open and photosynthesis begins", emoji: "🌿", correctOrder: 3 },
+];
+
+// ROUND 4 DATA
+const plantNeedsQuestions = [
+  {
+    question: "What do plants absorb through their roots?",
+    options: ["Sunlight", "Water & minerals", "Carbon dioxide", "Oxygen"],
+    correct: 1,
+    explanation: "Roots absorb water and dissolved minerals from the soil.",
+  },
+  {
+    question: "What gas do plants take in through their leaves?",
+    options: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"],
+    correct: 2,
+    explanation: "Plants absorb CO₂ through tiny holes called stomata for photosynthesis.",
+  },
+  {
+    question: "What is photosynthesis?",
+    options: [
+      "When plants sleep",
+      "How plants make food using sunlight",
+      "When seeds burst open",
+      "How roots grow deeper",
+    ],
+    correct: 1,
+    explanation: "Photosynthesis uses sunlight, water and CO₂ to make glucose (food).",
+  },
+  {
+    question: "Which mineral helps plants grow strong and green?",
+    options: ["Salt", "Sugar", "Nitrogen", "Vinegar"],
+    correct: 2,
+    explanation: "Nitrogen is essential for leaf growth and the green pigment chlorophyll.",
+  },
+  {
+    question: "What happens to a plant if it gets no water?",
+    options: ["It grows faster", "It turns blue", "It wilts and may die", "Nothing happens"],
+    correct: 2,
+    explanation: "Without water, cells lose pressure (turgor) and the plant wilts.",
+  },
+];
+
+// ROUND 5 DATA
+const trueFalseQuestions = [
+  { statement: "You should water a plant every hour to keep it healthy.", answer: false, explanation: "Overwatering drowns the roots! Water only when the soil is dry." },
+  { statement: "Weeds compete with your plant for water, nutrients and light.", answer: true, explanation: "Weeds steal resources — always remove them from around your plants." },
+  { statement: "Plants don't need air to survive.", answer: false, explanation: "Plants need oxygen for respiration and CO₂ for photosynthesis." },
+  { statement: "Measuring your plant each week helps you track its growth.", answer: true, explanation: "Recording height, leaf count and changes is good scientific practice!" },
+  { statement: "All plants need the exact same amount of sunlight.", answer: false, explanation: "Some plants love full sun, others prefer shade — it depends on the species." },
+  { statement: "Good soil contains minerals like nitrogen and potassium.", answer: true, explanation: "These nutrients are absorbed by roots and help the plant grow." },
+];
+
+// Shuffle helper
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ─── COMPONENTS ───
+
+function ProgressBar({ current, total, color }) {
+  return (
+    <div style={{ width: "100%", height: 8, borderRadius: 4, background: "#e8e8e8", overflow: "hidden" }}>
+      <div
+        style={{
+          width: `${(current / total) * 100}%`,
+          height: "100%",
+          background: color || "#4CAF50",
+          borderRadius: 4,
+          transition: "width 0.4s ease",
+        }}
+      />
+    </div>
+  );
+}
+
+function StarRating({ score, total }) {
+  const pct = total > 0 ? score / total : 0;
+  const stars = pct >= 0.9 ? 3 : pct >= 0.6 ? 2 : pct >= 0.3 ? 1 : 0;
+  return (
+    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            fontSize: 48,
+            filter: i < stars ? "none" : "grayscale(1) opacity(0.3)",
+            animation: i < stars ? `popIn 0.4s ease ${i * 0.2}s both` : "none",
+          }}
+        >
+          ⭐
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function FeedbackOverlay({ correct, explanation, onNext }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 100,
+        animation: "fadeIn 0.25s ease",
+        padding: 16,
+      }}
+      onClick={onNext}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          padding: "32px 28px",
+          maxWidth: 420,
+          width: "100%",
+          textAlign: "center",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          animation: "slideUp 0.3s ease",
+          border: `4px solid ${correct ? "#4CAF50" : "#ef5350"}`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ fontSize: 56, marginBottom: 12 }}>{correct ? "🎉" : "😅"}</div>
+        <h3
+          style={{
+            fontSize: 22,
+            fontFamily: "'Fredoka', sans-serif",
+            color: correct ? "#2E7D32" : "#c62828",
+            margin: "0 0 12px",
+          }}
+        >
+          {correct ? "Correct!" : "Not quite!"}
+        </h3>
+        <p style={{ fontSize: 15, color: "#555", lineHeight: 1.5, margin: "0 0 20px", fontFamily: "'Nunito', sans-serif" }}>
+          {explanation}
+        </p>
+        <button
+          onClick={onNext}
+          style={{
+            background: correct ? "#4CAF50" : "#ef5350",
+            color: "#fff",
+            border: "none",
+            borderRadius: 12,
+            padding: "12px 32px",
+            fontSize: 16,
+            fontFamily: "'Fredoka', sans-serif",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Continue →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── ROUND SCREENS ───
+
+function SeedPartsRound({ onComplete }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const q = seedPartQuestions[qIdx];
+
+  const handlePick = (idx) => {
+    const correct = idx === q.correct;
+    if (correct) setScore((s) => s + 1);
+    setFeedback({ correct, explanation: q.explanation });
+  };
+
+  const next = () => {
+    setFeedback(null);
+    if (qIdx + 1 < seedPartQuestions.length) setQIdx(qIdx + 1);
+    else onComplete(score + (feedback?.correct ? 0 : 0), seedPartQuestions.length);
+  };
+
+  useEffect(() => {
+    if (feedback && qIdx + 1 >= seedPartQuestions.length) {
+      // will complete on next click
+    }
+  }, [feedback, qIdx]);
+
+  const handleNext = () => {
+    if (qIdx + 1 < seedPartQuestions.length) {
+      setFeedback(null);
+      setQIdx(qIdx + 1);
+    } else {
+      onComplete(score, seedPartQuestions.length);
+    }
+  };
+
+  return (
+    <div>
+      <ProgressBar current={qIdx + 1} total={seedPartQuestions.length} color="#8D6E63" />
+      <div style={{ textAlign: "center", marginTop: 24 }}>
+        <div style={{ fontSize: 64, marginBottom: 8 }}>🌰</div>
+        <p style={{ fontSize: 18, color: "#3E2723", fontFamily: "'Nunito', sans-serif", fontWeight: 700, lineHeight: 1.4, margin: "0 0 24px" }}>
+          {q.question}
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 360, margin: "0 auto" }}>
+          {q.options.map((opt, i) => (
+            <button
+              key={i}
+              onClick={() => handlePick(i)}
+              disabled={!!feedback}
+              style={{
+                background: feedback
+                  ? i === q.correct
+                    ? "#C8E6C9"
+                    : "#FFCDD2"
+                  : "#FFF8E1",
+                border: `2px solid ${feedback ? (i === q.correct ? "#4CAF50" : "#ef5350") : "#FFD54F"}`,
+                borderRadius: 14,
+                padding: "14px 20px",
+                fontSize: 16,
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 600,
+                cursor: feedback ? "default" : "pointer",
+                color: "#3E2723",
+                transition: "all 0.2s",
+                transform: feedback && i === q.correct ? "scale(1.03)" : "scale(1)",
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+      {feedback && <FeedbackOverlay correct={feedback.correct} explanation={feedback.explanation} onNext={handleNext} />}
+    </div>
+  );
+}
+
+function DispersalRound({ onComplete }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const q = dispersalQuestions[qIdx];
+
+  const handlePick = (idx) => {
+    const correct = idx === q.correct;
+    if (correct) setScore((s) => s + 1);
+    setFeedback({ correct, explanation: q.explanation });
+  };
+
+  const handleNext = () => {
+    if (qIdx + 1 < dispersalQuestions.length) {
+      setFeedback(null);
+      setQIdx(qIdx + 1);
+    } else {
+      onComplete(score, dispersalQuestions.length);
+    }
+  };
+
+  return (
+    <div>
+      <ProgressBar current={qIdx + 1} total={dispersalQuestions.length} color="#29B6F6" />
+      <div style={{ textAlign: "center", marginTop: 24 }}>
+        <div style={{ fontSize: 56, marginBottom: 4 }}>{q.emoji}</div>
+        <p style={{ fontSize: 15, color: "#888", fontFamily: "'Nunito', sans-serif", margin: "0 0 4px" }}>How does this seed travel?</p>
+        <h3 style={{ fontSize: 24, fontFamily: "'Fredoka', sans-serif", color: "#1B5E20", margin: "0 0 20px" }}>{q.seed}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, maxWidth: 380, margin: "0 auto" }}>
+          {q.options.map((opt, i) => (
+            <button
+              key={i}
+              onClick={() => handlePick(i)}
+              disabled={!!feedback}
+              style={{
+                background: feedback
+                  ? i === q.correct
+                    ? "#C8E6C9"
+                    : "#fff"
+                  : "#E8F5E9",
+                border: `2px solid ${feedback ? (i === q.correct ? "#4CAF50" : "#ddd") : "#81C784"}`,
+                borderRadius: 14,
+                padding: "14px 12px",
+                fontSize: 15,
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 600,
+                cursor: feedback ? "default" : "pointer",
+                color: "#2E7D32",
+                transition: "all 0.2s",
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+      {feedback && <FeedbackOverlay correct={feedback.correct} explanation={feedback.explanation} onNext={handleNext} />}
+    </div>
+  );
+}
+
+function GerminationRound({ onComplete }) {
+  const [slots, setSlots] = useState([null, null, null, null]);
+  const [available, setAvailable] = useState(() => shuffle(germinationStages));
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const handlePlace = (stage) => {
+    const nextEmpty = slots.indexOf(null);
+    if (nextEmpty === -1) return;
+    const newSlots = [...slots];
+    newSlots[nextEmpty] = stage;
+    setSlots(newSlots);
+    setAvailable((a) => a.filter((s) => s.id !== stage.id));
+  };
+
+  const handleRemove = (idx) => {
+    if (checked) return;
+    const stage = slots[idx];
+    if (!stage) return;
+    const newSlots = [...slots];
+    newSlots[idx] = null;
+    setSlots(newSlots);
+    setAvailable((a) => [...a, stage]);
+  };
+
+  const handleCheck = () => {
+    let correct = 0;
+    slots.forEach((s, i) => {
+      if (s && s.correctOrder === i) correct++;
+    });
+    setScore(correct);
+    setChecked(true);
+  };
+
+  const allFilled = slots.every((s) => s !== null);
+
+  return (
+    <div>
+      <p style={{ fontSize: 15, color: "#555", fontFamily: "'Nunito', sans-serif", textAlign: "center", margin: "0 0 16px" }}>
+        Tap a stage card, then it fills the next slot. Tap a filled slot to remove it.
+      </p>
+
+      {/* Slots */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        {[0, 1, 2, 3].map((i) => {
+          const stage = slots[i];
+          const isCorrect = checked && stage && stage.correctOrder === i;
+          const isWrong = checked && stage && stage.correctOrder !== i;
+          return (
+            <div
+              key={i}
+              onClick={() => handleRemove(i)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "12px 16px",
+                borderRadius: 14,
+                border: `2px ${stage ? "solid" : "dashed"} ${checked ? (isCorrect ? "#4CAF50" : isWrong ? "#ef5350" : "#ddd") : stage ? "#81C784" : "#ccc"}`,
+                background: checked ? (isCorrect ? "#E8F5E9" : isWrong ? "#FFEBEE" : "#fafafa") : stage ? "#F1F8E9" : "#fafafa",
+                cursor: !checked && stage ? "pointer" : "default",
+                minHeight: 52,
+                transition: "all 0.2s",
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: checked ? (isCorrect ? "#4CAF50" : isWrong ? "#ef5350" : "#bbb") : "#81C784",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "'Fredoka', sans-serif",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                {i + 1}
+              </div>
+              {stage ? (
+                <span style={{ fontSize: 14, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#333" }}>
+                  {stage.emoji} {stage.label}
+                </span>
+              ) : (
+                <span style={{ fontSize: 14, color: "#aaa", fontStyle: "italic", fontFamily: "'Nunito', sans-serif" }}>Tap a card below...</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Available cards */}
+      {!checked && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 20 }}>
+          {available.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => handlePlace(s)}
+              style={{
+                background: "#FFF8E1",
+                border: "2px solid #FFD54F",
+                borderRadius: 12,
+                padding: "10px 16px",
+                fontSize: 13,
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 600,
+                cursor: "pointer",
+                color: "#5D4037",
+                maxWidth: "48%",
+              }}
+            >
+              {s.emoji} {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!checked && allFilled && (
+        <div style={{ textAlign: "center" }}>
+          <button
+            onClick={handleCheck}
+            style={{
+              background: "#4CAF50",
+              color: "#fff",
+              border: "none",
+              borderRadius: 14,
+              padding: "14px 36px",
+              fontSize: 17,
+              fontFamily: "'Fredoka', sans-serif",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            Check My Order ✓
+          </button>
+        </div>
+      )}
+
+      {checked && (
+        <div style={{ textAlign: "center", marginTop: 8 }}>
+          <p style={{ fontSize: 18, fontFamily: "'Fredoka', sans-serif", color: score === 4 ? "#2E7D32" : "#F57F17", margin: "0 0 12px" }}>
+            {score === 4 ? "🎉 Perfect order!" : `You got ${score}/4 in the right position.`}
+          </p>
+          <p style={{ fontSize: 14, color: "#666", fontFamily: "'Nunito', sans-serif", margin: "0 0 16px", lineHeight: 1.5 }}>
+            Correct order: 💧 Absorb water → ⬇️ Root grows down → ⬆️ Shoot grows up → 🌿 Leaves open
+          </p>
+          <button
+            onClick={() => onComplete(score, 4)}
+            style={{
+              background: "#4CAF50",
+              color: "#fff",
+              border: "none",
+              borderRadius: 14,
+              padding: "14px 36px",
+              fontSize: 17,
+              fontFamily: "'Fredoka', sans-serif",
+              cursor: "pointer",
+            }}
+          >
+            Continue →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlantNeedsRound({ onComplete }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const q = plantNeedsQuestions[qIdx];
+
+  const handlePick = (idx) => {
+    const correct = idx === q.correct;
+    if (correct) setScore((s) => s + 1);
+    setFeedback({ correct, explanation: q.explanation });
+  };
+
+  const handleNext = () => {
+    if (qIdx + 1 < plantNeedsQuestions.length) {
+      setFeedback(null);
+      setQIdx(qIdx + 1);
+    } else {
+      onComplete(score, plantNeedsQuestions.length);
+    }
+  };
+
+  return (
+    <div>
+      <ProgressBar current={qIdx + 1} total={plantNeedsQuestions.length} color="#FFC107" />
+      <div style={{ textAlign: "center", marginTop: 24 }}>
+        <div style={{ fontSize: 52, marginBottom: 8 }}>☀️</div>
+        <p style={{ fontSize: 17, color: "#333", fontFamily: "'Nunito', sans-serif", fontWeight: 700, lineHeight: 1.4, margin: "0 0 20px", padding: "0 8px" }}>
+          {q.question}
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 380, margin: "0 auto" }}>
+          {q.options.map((opt, i) => (
+            <button
+              key={i}
+              onClick={() => handlePick(i)}
+              disabled={!!feedback}
+              style={{
+                background: feedback ? (i === q.correct ? "#C8E6C9" : "#fff") : "#FFFDE7",
+                border: `2px solid ${feedback ? (i === q.correct ? "#4CAF50" : "#eee") : "#FFD54F"}`,
+                borderRadius: 14,
+                padding: "13px 18px",
+                fontSize: 15,
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 600,
+                cursor: feedback ? "default" : "pointer",
+                color: "#333",
+                transition: "all 0.2s",
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+      {feedback && <FeedbackOverlay correct={feedback.correct} explanation={feedback.explanation} onNext={handleNext} />}
+    </div>
+  );
+}
+
+function TrueFalseRound({ onComplete }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const q = trueFalseQuestions[qIdx];
+
+  const handlePick = (val) => {
+    const correct = val === q.answer;
+    if (correct) setScore((s) => s + 1);
+    setFeedback({ correct, explanation: q.explanation });
+  };
+
+  const handleNext = () => {
+    if (qIdx + 1 < trueFalseQuestions.length) {
+      setFeedback(null);
+      setQIdx(qIdx + 1);
+    } else {
+      onComplete(score, trueFalseQuestions.length);
+    }
+  };
+
+  return (
+    <div>
+      <ProgressBar current={qIdx + 1} total={trueFalseQuestions.length} color="#66BB6A" />
+      <div style={{ textAlign: "center", marginTop: 28 }}>
+        <div style={{ fontSize: 52, marginBottom: 12 }}>🌻</div>
+        <div
+          style={{
+            background: "#F1F8E9",
+            borderRadius: 16,
+            padding: "20px 24px",
+            margin: "0 0 24px",
+            border: "2px solid #C5E1A5",
+          }}
+        >
+          <p style={{ fontSize: 17, color: "#333", fontFamily: "'Nunito', sans-serif", fontWeight: 700, lineHeight: 1.5, margin: 0 }}>
+            "{q.statement}"
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+          <button
+            onClick={() => handlePick(true)}
+            disabled={!!feedback}
+            style={{
+              background: feedback ? (q.answer === true ? "#C8E6C9" : "#FFCDD2") : "#E8F5E9",
+              border: `3px solid ${feedback ? (q.answer === true ? "#4CAF50" : "#ef5350") : "#81C784"}`,
+              borderRadius: 16,
+              padding: "16px 36px",
+              fontSize: 20,
+              fontFamily: "'Fredoka', sans-serif",
+              cursor: feedback ? "default" : "pointer",
+              color: "#2E7D32",
+              fontWeight: 700,
+            }}
+          >
+            ✅ TRUE
+          </button>
+          <button
+            onClick={() => handlePick(false)}
+            disabled={!!feedback}
+            style={{
+              background: feedback ? (q.answer === false ? "#C8E6C9" : "#FFCDD2") : "#FFEBEE",
+              border: `3px solid ${feedback ? (q.answer === false ? "#4CAF50" : "#ef5350") : "#ef9a9a"}`,
+              borderRadius: 16,
+              padding: "16px 36px",
+              fontSize: 20,
+              fontFamily: "'Fredoka', sans-serif",
+              cursor: feedback ? "default" : "pointer",
+              color: "#c62828",
+              fontWeight: 700,
+            }}
+          >
+            ❌ FALSE
+          </button>
+        </div>
+      </div>
+      {feedback && <FeedbackOverlay correct={feedback.correct} explanation={feedback.explanation} onNext={handleNext} />}
+    </div>
+  );
+}
+
+// ─── MAIN APP ───
+
+export default function PlantExplorerGame() {
+  const [screen, setScreen] = useState("welcome"); // welcome | roundIntro | playing | roundResult | final
+  const [currentRound, setCurrentRound] = useState(0);
+  const [roundScores, setRoundScores] = useState([]);
+  const [animKey, setAnimKey] = useState(0);
+
+  const totalScore = roundScores.reduce((a, r) => a + r.score, 0);
+  const totalQuestions = roundScores.reduce((a, r) => a + r.total, 0);
+
+  const startGame = () => {
+    setCurrentRound(0);
+    setRoundScores([]);
+    setScreen("roundIntro");
+    setAnimKey((k) => k + 1);
+  };
+
+  const startRound = () => {
+    setScreen("playing");
+    setAnimKey((k) => k + 1);
+  };
+
+  const handleRoundComplete = useCallback(
+    (score, total) => {
+      setRoundScores((prev) => [...prev, { round: currentRound, score, total }]);
+      setScreen("roundResult");
+      setAnimKey((k) => k + 1);
+    },
+    [currentRound]
+  );
+
+  const nextRound = () => {
+    if (currentRound + 1 < ROUNDS.length) {
+      setCurrentRound((r) => r + 1);
+      setScreen("roundIntro");
+    } else {
+      setScreen("final");
+    }
+    setAnimKey((k) => k + 1);
+  };
+
+  const round = ROUNDS[currentRound];
+  const lastScore = roundScores[roundScores.length - 1];
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(170deg, #E8F5E9 0%, #C8E6C9 40%, #A5D6A7 100%)",
+        fontFamily: "'Nunito', sans-serif",
+      }}
+    >
+      <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes popIn { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+        @keyframes bounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+        @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(-12px) rotate(3deg) } }
+        @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.05) } }
+        @keyframes growLeaf { from { transform: scale(0) rotate(-20deg); opacity:0 } to { transform: scale(1) rotate(0); opacity:1 } }
+        * { box-sizing: border-box; }
+        button { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        button:active:not(:disabled) { transform: scale(0.96) !important; }
+      `}</style>
+
+      <div style={{ maxWidth: 520, margin: "0 auto", padding: "20px 16px 40px" }}>
+        {/* HEADER */}
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 28, animation: "float 3s ease-in-out infinite" }}>🌱</span>
+            <h1
+              style={{
+                fontSize: 22,
+                fontFamily: "'Fredoka', sans-serif",
+                color: "#1B5E20",
+                margin: 0,
+                fontWeight: 700,
+              }}
+            >
+              Plant Explorer
+            </h1>
+            <span style={{ fontSize: 28, animation: "float 3s ease-in-out 1.5s infinite" }}>🌿</span>
+          </div>
+          {screen !== "welcome" && screen !== "final" && (
+            <p style={{ fontSize: 12, color: "#4CAF50", margin: 0, fontWeight: 600 }}>
+              Whyte Pyramid Academy • Year 3
+            </p>
+          )}
+        </div>
+
+        {/* ROUND TRACKER */}
+        {screen !== "welcome" && screen !== "final" && (
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 }}>
+            {ROUNDS.map((r, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: i < currentRound ? "#4CAF50" : i === currentRound ? "#FFC107" : "#E0E0E0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  transition: "all 0.3s",
+                  boxShadow: i === currentRound ? "0 0 0 3px rgba(255,193,7,0.4)" : "none",
+                }}
+              >
+                {i < currentRound ? "✓" : r.icon}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ─── WELCOME SCREEN ─── */}
+        {screen === "welcome" && (
+          <div key={animKey} style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
+            <div style={{ fontSize: 80, marginBottom: 8, animation: "bounce 2s ease-in-out infinite" }}>🌳</div>
+            <h2 style={{ fontSize: 28, fontFamily: "'Fredoka', sans-serif", color: "#1B5E20", margin: "0 0 8px" }}>
+              Welcome, Explorer!
+            </h2>
+            <p style={{ fontSize: 15, color: "#555", margin: "0 0 8px", lineHeight: 1.5 }}>
+              Test your knowledge about seeds, germination, and plant care across <strong>5 exciting rounds</strong>.
+            </p>
+            <p style={{ fontSize: 13, color: "#888", margin: "0 0 24px" }}>
+              Whyte Pyramid Academy • Year 3 Science
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "0 auto 28px" }}>
+              {ROUNDS.map((r, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    background: "#fff",
+                    borderRadius: 12,
+                    padding: "10px 16px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    animation: `growLeaf 0.4s ease ${i * 0.1}s both`,
+                  }}
+                >
+                  <span style={{ fontSize: 24 }}>{r.icon}</span>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#2E7D32" }}>Round {i + 1}</div>
+                    <div style={{ fontSize: 12, color: "#777" }}>{r.title}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={startGame}
+              style={{
+                background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 16,
+                padding: "16px 48px",
+                fontSize: 20,
+                fontFamily: "'Fredoka', sans-serif",
+                cursor: "pointer",
+                fontWeight: 700,
+                boxShadow: "0 6px 20px rgba(46,125,50,0.35)",
+                animation: "pulse 2s ease-in-out infinite",
+              }}
+            >
+              Start Game 🚀
+            </button>
+          </div>
+        )}
+
+        {/* ─── ROUND INTRO ─── */}
+        {screen === "roundIntro" && (
+          <div key={animKey} style={{ textAlign: "center", animation: "slideUp 0.4s ease" }}>
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 24,
+                padding: "40px 28px",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+                marginTop: 20,
+              }}
+            >
+              <div style={{ fontSize: 72, marginBottom: 12, animation: "bounce 1.5s ease-in-out infinite" }}>{round.icon}</div>
+              <p style={{ fontSize: 14, color: "#4CAF50", fontWeight: 700, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: 1 }}>
+                Round {currentRound + 1} of {ROUNDS.length}
+              </p>
+              <h2 style={{ fontSize: 26, fontFamily: "'Fredoka', sans-serif", color: "#1B5E20", margin: "0 0 12px" }}>
+                {round.title}
+              </h2>
+              <p style={{ fontSize: 15, color: "#666", margin: "0 0 28px", lineHeight: 1.5 }}>{round.instruction}</p>
+              <button
+                onClick={startRound}
+                style={{
+                  background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "14px 40px",
+                  fontSize: 18,
+                  fontFamily: "'Fredoka', sans-serif",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  boxShadow: "0 4px 16px rgba(46,125,50,0.3)",
+                }}
+              >
+                Let's Go! 🌟
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── PLAYING ─── */}
+        {screen === "playing" && (
+          <div
+            key={animKey}
+            style={{
+              background: "#fff",
+              borderRadius: 20,
+              padding: "24px 20px",
+              boxShadow: "0 6px 24px rgba(0,0,0,0.07)",
+              animation: "fadeIn 0.3s ease",
+            }}
+          >
+            {currentRound === 0 && <SeedPartsRound onComplete={handleRoundComplete} />}
+            {currentRound === 1 && <DispersalRound onComplete={handleRoundComplete} />}
+            {currentRound === 2 && <GerminationRound onComplete={handleRoundComplete} />}
+            {currentRound === 3 && <PlantNeedsRound onComplete={handleRoundComplete} />}
+            {currentRound === 4 && <TrueFalseRound onComplete={handleRoundComplete} />}
+          </div>
+        )}
+
+        {/* ─── ROUND RESULT ─── */}
+        {screen === "roundResult" && lastScore && (
+          <div key={animKey} style={{ textAlign: "center", animation: "slideUp 0.4s ease" }}>
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 24,
+                padding: "36px 28px",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+                marginTop: 20,
+              }}
+            >
+              <p style={{ fontSize: 14, color: "#888", margin: "0 0 8px", fontWeight: 600 }}>Round {currentRound + 1} Complete!</p>
+              <h2 style={{ fontSize: 26, fontFamily: "'Fredoka', sans-serif", color: "#1B5E20", margin: "0 0 16px" }}>
+                {round.title} {round.icon}
+              </h2>
+              <StarRating score={lastScore.score} total={lastScore.total} />
+              <p style={{ fontSize: 36, fontFamily: "'Fredoka', sans-serif", color: "#2E7D32", margin: "16px 0 4px" }}>
+                {lastScore.score}/{lastScore.total}
+              </p>
+              <p style={{ fontSize: 14, color: "#888", margin: "0 0 28px" }}>
+                {lastScore.score === lastScore.total
+                  ? "Perfect score! 🎉"
+                  : lastScore.score >= lastScore.total * 0.6
+                  ? "Well done! Keep going! 👏"
+                  : "Good effort! Let's keep learning! 💪"}
+              </p>
+              <button
+                onClick={nextRound}
+                style={{
+                  background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "14px 40px",
+                  fontSize: 18,
+                  fontFamily: "'Fredoka', sans-serif",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  boxShadow: "0 4px 16px rgba(46,125,50,0.3)",
+                }}
+              >
+                {currentRound + 1 < ROUNDS.length ? "Next Round →" : "See Results 🏆"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── FINAL RESULTS ─── */}
+        {screen === "final" && (
+          <div key={animKey} style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 24,
+                padding: "36px 24px",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+              }}
+            >
+              <div style={{ fontSize: 64, marginBottom: 8 }}>🏆</div>
+              <h2 style={{ fontSize: 28, fontFamily: "'Fredoka', sans-serif", color: "#1B5E20", margin: "0 0 4px" }}>
+                Game Complete!
+              </h2>
+              <p style={{ fontSize: 13, color: "#888", margin: "0 0 16px" }}>Whyte Pyramid Academy • Year 3 Science</p>
+
+              <StarRating score={totalScore} total={totalQuestions} />
+
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #E8F5E9, #C8E6C9)",
+                  borderRadius: 16,
+                  padding: "20px 24px",
+                  margin: "20px 0",
+                }}
+              >
+                <p style={{ fontSize: 42, fontFamily: "'Fredoka', sans-serif", color: "#1B5E20", margin: "0 0 4px" }}>
+                  {totalScore}/{totalQuestions}
+                </p>
+                <p style={{ fontSize: 14, color: "#4CAF50", margin: 0, fontWeight: 600 }}>
+                  {Math.round((totalScore / totalQuestions) * 100)}% correct
+                </p>
+              </div>
+
+              {/* Round breakdown */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                {roundScores.map((rs, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 16px",
+                      background: "#FAFAFA",
+                      borderRadius: 10,
+                      animation: `growLeaf 0.3s ease ${i * 0.1}s both`,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 18 }}>{ROUNDS[i].icon}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{ROUNDS[i].title}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: rs.score === rs.total ? "#2E7D32" : "#F57F17" }}>
+                        {rs.score}/{rs.total}
+                      </span>
+                      <span style={{ fontSize: 14 }}>{rs.score === rs.total ? "⭐" : rs.score >= rs.total * 0.6 ? "👍" : "📖"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p style={{ fontSize: 15, color: "#555", margin: "0 0 20px", lineHeight: 1.5, fontStyle: "italic" }}>
+                {totalScore >= totalQuestions * 0.9
+                  ? "Outstanding! You're a true Plant Expert! 🌟"
+                  : totalScore >= totalQuestions * 0.7
+                  ? "Well done! You know your plants really well! 🌿"
+                  : totalScore >= totalQuestions * 0.5
+                  ? "Good work! Review the slides and try again to improve! 📚"
+                  : "Keep learning! Read through the slides and give it another go! 💪"}
+              </p>
+
+              <button
+                onClick={() => {
+                  setScreen("welcome");
+                  setCurrentRound(0);
+                  setRoundScores([]);
+                  setAnimKey((k) => k + 1);
+                }}
+                style={{
+                  background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "14px 40px",
+                  fontSize: 18,
+                  fontFamily: "'Fredoka', sans-serif",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  boxShadow: "0 4px 16px rgba(46,125,50,0.3)",
+                }}
+              >
+                Play Again 🔄
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
