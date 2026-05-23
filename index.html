@@ -3,672 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plant Explorer Game — Whyte Pyramid Academy</title>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Soil & Rocks Quiz</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
   body {
-    min-height: 100vh;
-    background: linear-gradient(170deg, #E8F5E9 0%, #C8E6C9 40%, #A5D6A7 100%);
-    font-family: 'Nunito', sans-serif;
-    color: #333;
-    overflow-x: hidden;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to right, #a8edea, #fed6e3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
   }
 
-  .app { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
-
-  /* ── HEADER ── */
-  .header { text-align: center; margin-bottom: 16px; }
-  .header-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
-  .header h1 { font-size: 22px; font-family: 'Fredoka', sans-serif; color: #1B5E20; font-weight: 700; }
-  .header-sub { font-size: 12px; color: #4CAF50; font-weight: 600; }
-  .float-icon { font-size: 28px; animation: float 3s ease-in-out infinite; display: inline-block; }
-  .float-icon.delayed { animation-delay: 1.5s; }
-
-  /* ── ROUND TRACKER ── */
-  .tracker { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
-  .tracker-dot {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; transition: all 0.3s;
-  }
-  .tracker-dot.done { background: #4CAF50; color: #fff; }
-  .tracker-dot.active { background: #FFC107; box-shadow: 0 0 0 3px rgba(255,193,7,0.4); }
-  .tracker-dot.pending { background: #E0E0E0; }
-
-  /* ── PROGRESS BAR ── */
-  .progress-bar { width: 100%; height: 8px; border-radius: 4px; background: #e8e8e8; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-
-  /* ── CARDS & PANELS ── */
-  .card {
-    background: #fff; border-radius: 24px; padding: 36px 28px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08); animation: slideUp 0.4s ease;
-  }
-  .game-card {
-    background: #fff; border-radius: 20px; padding: 24px 20px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.07); animation: fadeIn 0.3s ease;
+  .quiz-container {
+    background: white;
+    border-radius: 15px;
+    width: 700px;
+    max-width: 90%;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: fadeIn 1s ease-in-out;
   }
 
-  /* ── BUTTONS ── */
-  button {
-    cursor: pointer; border: none; font-family: 'Nunito', sans-serif;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  button:active:not(:disabled) { transform: scale(0.96) !important; }
-  button:disabled { cursor: default; opacity: 0.85; }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #4CAF50, #2E7D32); color: #fff;
-    border-radius: 14px; padding: 14px 40px; font-size: 18px;
-    font-family: 'Fredoka', sans-serif; font-weight: 600;
-    box-shadow: 0 4px 16px rgba(46,125,50,0.3);
-  }
-  .btn-primary.big { border-radius: 16px; padding: 16px 48px; font-size: 20px; font-weight: 700; box-shadow: 0 6px 20px rgba(46,125,50,0.35); }
-  .btn-primary.pulse { animation: pulse 2s ease-in-out infinite; }
-
-  .btn-option {
-    border-radius: 14px; padding: 13px 18px; font-size: 15px;
-    font-weight: 600; width: 100%; text-align: center; transition: all 0.2s;
+  @keyframes fadeIn {
+    from {opacity:0; transform: translateY(-20px);}
+    to {opacity:1; transform: translateY(0);}
   }
 
-  .btn-tf {
-    border-radius: 16px; padding: 16px 36px; font-size: 20px;
-    font-family: 'Fredoka', sans-serif; font-weight: 700;
+  h1 {
+    text-align: center;
+    color: #2b7a78;
+    margin-bottom: 20px;
+    font-size: 2em;
   }
 
-  /* ── FEEDBACK OVERLAY ── */
-  .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 100; animation: fadeIn 0.25s ease; padding: 16px;
-  }
-  .overlay-card {
-    background: #fff; border-radius: 20px; padding: 32px 28px;
-    max-width: 420px; width: 100%; text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s ease;
-    border-width: 4px; border-style: solid;
-  }
-  .overlay-card.correct { border-color: #4CAF50; }
-  .overlay-card.wrong { border-color: #ef5350; }
-  .overlay-card h3 { font-size: 22px; font-family: 'Fredoka', sans-serif; margin-bottom: 12px; }
-  .overlay-card p { font-size: 15px; color: #555; line-height: 1.5; margin-bottom: 20px; }
-
-  /* ── WELCOME ROUND LIST ── */
-  .round-list { display: flex; flex-direction: column; gap: 10px; max-width: 340px; margin: 0 auto 28px; }
-  .round-item {
-    display: flex; align-items: center; gap: 12px;
-    background: #fff; border-radius: 12px; padding: 10px 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  .round-item .emoji { font-size: 24px; flex-shrink: 0; }
-  .round-item .label { font-size: 14px; font-weight: 700; color: #2E7D32; }
-  .round-item .sublabel { font-size: 12px; color: #777; }
-
-  /* ── STAR RATING ── */
-  .stars { display: flex; gap: 8px; justify-content: center; }
-  .star { font-size: 48px; }
-  .star.off { filter: grayscale(1) opacity(0.3); }
-  .star.on { animation: popIn 0.4s ease both; }
-  .star.on:nth-child(2) { animation-delay: 0.2s; }
-  .star.on:nth-child(3) { animation-delay: 0.4s; }
-
-  /* ── GERMINATION SLOTS ── */
-  .germ-slots { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-  .germ-slot {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 16px; border-radius: 14px; min-height: 52px;
-    transition: all 0.2s; border-width: 2px; border-style: solid;
-  }
-  .germ-slot.empty { border-style: dashed; border-color: #ccc; background: #fafafa; }
-  .germ-slot.filled { border-color: #81C784; background: #F1F8E9; cursor: pointer; }
-  .germ-slot.right { border-color: #4CAF50; background: #E8F5E9; }
-  .germ-slot.wrong-slot { border-color: #ef5350; background: #FFEBEE; }
-
-  .slot-num {
-    width: 32px; height: 32px; border-radius: 50%;
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka', sans-serif; font-size: 16px; font-weight: 700; flex-shrink: 0;
-  }
-  .germ-avail { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-  .germ-chip {
-    background: #FFF8E1; border: 2px solid #FFD54F; border-radius: 12px;
-    padding: 10px 16px; font-size: 13px; font-weight: 600; color: #5D4037;
-    max-width: 48%;
+  .question {
+    font-size: 1.2em;
+    margin-bottom: 15px;
   }
 
-  /* ── RESULT BREAKDOWN ── */
-  .breakdown { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-  .breakdown-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 16px; background: #FAFAFA; border-radius: 10px;
-  }
-  .breakdown-row .left { display: flex; align-items: center; gap: 8px; }
-  .breakdown-row .left span:first-child { font-size: 18px; }
-  .breakdown-row .left span:last-child { font-size: 13px; font-weight: 600; color: #333; }
-  .breakdown-row .right { display: flex; align-items: center; gap: 6px; }
-  .breakdown-score { font-size: 14px; font-weight: 700; }
-
-  .gradient-box {
-    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
-    border-radius: 16px; padding: 20px 24px; margin: 20px 0;
+  .options {
+    list-style: none;
+    padding: 0;
   }
 
-  /* ── STATEMENT BOX ── */
-  .tf-statement {
-    background: #F1F8E9; border-radius: 16px; padding: 20px 24px;
-    margin: 0 0 24px; border: 2px solid #C5E1A5;
+  .options li {
+    background: #def2f1;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
   }
-  .tf-buttons { display: flex; gap: 16px; justify-content: center; }
 
-  /* ── ANIMATIONS ── */
-  @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
-  @keyframes popIn { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
-  @keyframes bounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
-  @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(-12px) rotate(3deg) } }
-  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.05) } }
-  @keyframes growLeaf { from { transform: scale(0) rotate(-20deg); opacity:0 } to { transform: scale(1) rotate(0); opacity:1 } }
+  .options li:hover {
+    background: #3aafa9;
+    color: white;
+    transform: translateX(5px);
+  }
 
-  .anim-slideup { animation: slideUp 0.5s ease; }
-  .anim-bounce { animation: bounce 2s ease-in-out infinite; display: inline-block; }
-  .anim-grow { animation: growLeaf 0.4s ease both; }
+  .options li.correct {
+    background: #57cc99;
+    color: white;
+    border: 2px solid #2b7a78;
+  }
 
-  .hidden { display: none !important; }
+  .options li.wrong {
+    background: #ff6b6b;
+    color: white;
+    border: 2px solid #c92a2a;
+  }
+
+  .next-btn {
+    margin-top: 20px;
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #2b7a78;
+    color: white;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .next-btn:hover {
+    background: #3aafa9;
+  }
+
+  .progress {
+    height: 20px;
+    background: #def2f1;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #2b7a78;
+    border-radius: 10px;
+    transition: width 0.5s;
+  }
+
+  .timer {
+    text-align: right;
+    font-size: 1em;
+    color: #17252a;
+    margin-bottom: 15px;
+  }
+
+  .result {
+    font-size: 1.3em;
+    text-align: center;
+    margin-top: 20px;
+    color: #17252a;
+  }
+
+  .animate {
+    animation: bounce 0.6s;
+  }
+
+  @keyframes bounce {
+    0% {transform: scale(1);}
+    50% {transform: scale(1.1);}
+    100% {transform: scale(1);}
+  }
 </style>
 </head>
 <body>
 
-<div class="app" id="app">
-  <!-- HEADER -->
-  <div class="header" id="header">
-    <div class="header-row">
-      <span class="float-icon">🌱</span>
-      <h1>Plant Explorer</h1>
-      <span class="float-icon delayed">🌿</span>
-    </div>
-    <p class="header-sub hidden" id="headerSub">Whyte Pyramid Academy • Year 3</p>
+<div class="quiz-container">
+  <h1>Soil & Rocks Quiz</h1>
+  <div class="timer">Time Left: <span id="time">20:00</span></div>
+  <div class="progress">
+    <div class="progress-bar" id="progress-bar"></div>
   </div>
-
-  <!-- ROUND TRACKER -->
-  <div class="tracker hidden" id="tracker"></div>
-
-  <!-- SCREENS -->
-  <div id="screen-welcome"></div>
-  <div id="screen-roundIntro"></div>
-  <div id="screen-playing"></div>
-  <div id="screen-roundResult"></div>
-  <div id="screen-final"></div>
-  <div id="overlay-container"></div>
+  <div class="question" id="question"></div>
+  <ul class="options" id="options"></ul>
+  <button class="next-btn" id="next-btn">Next</button>
+  <div class="result" id="result"></div>
 </div>
 
 <script>
-// ─── DATA ───
-const ROUNDS = [
-  { id:"seed-parts", title:"Parts of a Seed", icon:"🌰", instruction:"Tap the correct part of the seed for each question." },
-  { id:"dispersal", title:"Seed Dispersal", icon:"💨", instruction:"Match each seed to how it travels to a new place." },
-  { id:"germination-order", title:"Germination Stages", icon:"🌱", instruction:"Put the germination stages in the correct order (1st → 4th)." },
-  { id:"plant-needs", title:"What Plants Need", icon:"☀️", instruction:"Answer each question about what plants need to grow." },
-  { id:"true-false", title:"Plant Care", icon:"🌻", instruction:"Decide if each statement is TRUE or FALSE." },
-];
+  const quizData = [
+    {q:"What is the top layer of soil called?", a:["Topsoil","Subsoil","Bedrock","Humus"], correct:0},
+    {q:"Which soil type holds water the best?", a:["Sandy","Clay","Silty","Loam"], correct:1},
+    {q:"Which is an Igneous rock?", a:["Granite","Limestone","Slate","Coal"], correct:0},
+    {q:"Which layer contains decayed plant and animal matter?", a:["Topsoil","Humus","Bedrock","Subsoil"], correct:1},
+    {q:"Which soil is best for most plants?", a:["Clay","Sandy","Loam","Silty"], correct:2},
+    {q:"Which type of rock is formed by heat and pressure?", a:["Igneous","Sedimentary","Metamorphic","Obsidian"], correct:2},
+    {q:"Which process breaks rocks into smaller pieces?", a:["Erosion","Weathering","Sedimentation","Compaction"], correct:1},
+    {q:"Which organisms live in soil?", a:["Worms and bacteria","Snakes","Birds","Fish"], correct:0},
+    {q:"What does bedrock form?", a:["Soil","Mountains","The Earth's base","Clay"], correct:2},
+    {q:"Which rock type forms from layers pressed together?", a:["Igneous","Sedimentary","Metamorphic","Basalt"], correct:1},
+    {q:"Which soil holds nutrients well?", a:["Sandy","Clay","Loam","Silty"], correct:1},
+    {q:"Which is NOT a property of rocks?", a:["Color","Hardness","Texture","Temperature"], correct:3},
+    {q:"Which soil layer is just above bedrock?", a:["Humus","Subsoil","Topsoil","Clay"], correct:1},
+    {q:"Which is a fossil type?", a:["Body Fossil","Topsoil","Basalt","Clay"], correct:0},
+    {q:"What process moves sediments to new places?", a:["Weathering","Erosion","Compaction","Melting"], correct:1},
+    {q:"Which rock can float on water?", a:["Obsidian","Pumice","Granite","Marble"], correct:1},
+    {q:"Which soil type is gritty?", a:["Clay","Silty","Sandy","Loam"], correct:2},
+    {q:"Which rock is smooth and was used as a mirror?", a:["Granite","Basalt","Obsidian","Marble"], correct:2},
+    {q:"Which rock type contains fossils?", a:["Igneous","Metamorphic","Sedimentary","Obsidian"], correct:2},
+    {q:"Which is a major role of soil?", a:["Growing food","Breaking rocks","Forming rivers","Melting lava"], correct:0}
+  ];
 
-const seedPartQuestions = [
-  { question:"Which part protects the baby plant inside the seed?", options:["Seed Coat","Embryo","Food Store"], correct:0, explanation:"The seed coat is a hard outer shell — like a tiny suit of armour!" },
-  { question:"Which part is the baby plant that will grow into a new plant?", options:["Food Store","Seed Coat","Embryo"], correct:2, explanation:"The embryo contains the radicle (baby root) and plumule (baby shoot)." },
-  { question:"Which part feeds the baby plant until it can make its own food?", options:["Embryo","Food Store","Seed Coat"], correct:1, explanation:"The food store (cotyledon) contains starch and nutrients for early growth." },
-  { question:"The radicle and plumule are found inside which part?", options:["Seed Coat","Food Store","Embryo"], correct:2, explanation:"The embryo holds the radicle (first root) and plumule (first shoot)." },
-];
+  let currentQuestion = 0;
+  let score = 0;
+  const totalQuestions = quizData.length;
+  const questionEl = document.getElementById('question');
+  const optionsEl = document.getElementById('options');
+  const nextBtn = document.getElementById('next-btn');
+  const resultEl = document.getElementById('result');
+  const progressBar = document.getElementById('progress-bar');
+  const timerEl = document.getElementById('time');
 
-const dispersalQuestions = [
-  { seed:"Dandelion", emoji:"🌼", options:["Wind 💨","Water 💧","Animals 🐿️","Explosion 💥"], correct:0, explanation:"Dandelion seeds have tiny parachutes that catch the wind!" },
-  { seed:"Coconut", emoji:"🥥", options:["Wind 💨","Water 💧","Animals 🐿️","Explosion 💥"], correct:1, explanation:"Coconuts have waterproof shells and can float across oceans!" },
-  { seed:"Burdock", emoji:"🌿", options:["Wind 💨","Water 💧","Animals 🐿️","Explosion 💥"], correct:2, explanation:"Burdock seeds have tiny hooks that stick to animal fur (and your socks!)." },
-  { seed:"Pea Pod", emoji:"🫛", options:["Wind 💨","Water 💧","Animals 🐿️","Explosion 💥"], correct:3, explanation:"Pea pods dry out in the sun and burst open, flinging seeds away!" },
-  { seed:"Sycamore", emoji:"🍁", options:["Wind 💨","Water 💧","Animals 🐿️","Explosion 💥"], correct:0, explanation:"Sycamore seeds spin like tiny helicopters in the wind!" },
-];
-
-const germinationStages = [
-  { id:"absorb", label:"Seed absorbs water and swells", emoji:"💧", correctOrder:0 },
-  { id:"root", label:"Radicle (root) pushes down into soil", emoji:"⬇️", correctOrder:1 },
-  { id:"shoot", label:"Plumule (shoot) grows up towards light", emoji:"⬆️", correctOrder:2 },
-  { id:"leaves", label:"First leaves open and photosynthesis begins", emoji:"🌿", correctOrder:3 },
-];
-
-const plantNeedsQuestions = [
-  { question:"What do plants absorb through their roots?", options:["Sunlight","Water & minerals","Carbon dioxide","Oxygen"], correct:1, explanation:"Roots absorb water and dissolved minerals from the soil." },
-  { question:"What gas do plants take in through their leaves?", options:["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"], correct:2, explanation:"Plants absorb CO₂ through tiny holes called stomata for photosynthesis." },
-  { question:"What is photosynthesis?", options:["When plants sleep","How plants make food using sunlight","When seeds burst open","How roots grow deeper"], correct:1, explanation:"Photosynthesis uses sunlight, water and CO₂ to make glucose (food)." },
-  { question:"Which mineral helps plants grow strong and green?", options:["Salt","Sugar","Nitrogen","Vinegar"], correct:2, explanation:"Nitrogen is essential for leaf growth and the green pigment chlorophyll." },
-  { question:"What happens to a plant if it gets no water?", options:["It grows faster","It turns blue","It wilts and may die","Nothing happens"], correct:2, explanation:"Without water, cells lose pressure (turgor) and the plant wilts." },
-];
-
-const trueFalseQuestions = [
-  { statement:"You should water a plant every hour to keep it healthy.", answer:false, explanation:"Overwatering drowns the roots! Water only when the soil is dry." },
-  { statement:"Weeds compete with your plant for water, nutrients and light.", answer:true, explanation:"Weeds steal resources — always remove them from around your plants." },
-  { statement:"Plants don't need air to survive.", answer:false, explanation:"Plants need oxygen for respiration and CO₂ for photosynthesis." },
-  { statement:"Measuring your plant each week helps you track its growth.", answer:true, explanation:"Recording height, leaf count and changes is good scientific practice!" },
-  { statement:"All plants need the exact same amount of sunlight.", answer:false, explanation:"Some plants love full sun, others prefer shade — it depends on the species." },
-  { statement:"Good soil contains minerals like nitrogen and potassium.", answer:true, explanation:"These nutrients are absorbed by roots and help the plant grow." },
-];
-
-// ─── STATE ───
-let currentRound = 0;
-let roundScores = [];
-let roundQIdx = 0;
-let roundScore = 0;
-let germSlots = [null,null,null,null];
-let germAvailable = [];
-let germChecked = false;
-let germScore = 0;
-
-// ─── HELPERS ───
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+  function startTimer(duration) {
+    let timer = duration, minutes, seconds;
+    const interval = setInterval(() => {
+      minutes = parseInt(timer / 60, 10);
+      seconds = parseInt(timer % 60, 10);
+      minutes = minutes < 10 ? "0"+minutes : minutes;
+      seconds = seconds < 10 ? "0"+seconds : seconds;
+      timerEl.textContent = minutes + ":" + seconds;
+      if (--timer < 0) {
+        clearInterval(interval);
+        showResult();
+      }
+    }, 1000);
   }
-  return a;
-}
 
-function $(id) { return document.getElementById(id); }
-function clearScreen(id) { $(id).innerHTML = ''; }
-function clearAllScreens() {
-  ['screen-welcome','screen-roundIntro','screen-playing','screen-roundResult','screen-final','overlay-container'].forEach(clearScreen);
-}
-
-function starsHTML(score, total) {
-  const pct = total > 0 ? score / total : 0;
-  const stars = pct >= 0.9 ? 3 : pct >= 0.6 ? 2 : pct >= 0.3 ? 1 : 0;
-  return '<div class="stars">' + [0,1,2].map(i =>
-    `<span class="star ${i < stars ? 'on' : 'off'}" style="animation-delay:${i*0.2}s">⭐</span>`
-  ).join('') + '</div>';
-}
-
-function progressHTML(current, total, color) {
-  return `<div class="progress-bar"><div class="progress-fill" style="width:${(current/total)*100}%;background:${color}"></div></div>`;
-}
-
-function showTracker() {
-  $('tracker').classList.remove('hidden');
-  $('headerSub').classList.remove('hidden');
-  $('tracker').innerHTML = ROUNDS.map((r, i) => {
-    const cls = i < currentRound ? 'done' : i === currentRound ? 'active' : 'pending';
-    return `<div class="tracker-dot ${cls}">${i < currentRound ? '✓' : r.icon}</div>`;
-  }).join('');
-}
-
-function hideTracker() {
-  $('tracker').classList.add('hidden');
-  $('headerSub').classList.add('hidden');
-}
-
-function showOverlay(correct, explanation, onNext) {
-  $('overlay-container').innerHTML = `
-    <div class="overlay" id="overlayBg">
-      <div class="overlay-card ${correct ? 'correct' : 'wrong'}" onclick="event.stopPropagation()">
-        <div style="font-size:56px;margin-bottom:12px">${correct ? '🎉' : '😅'}</div>
-        <h3 style="color:${correct ? '#2E7D32' : '#c62828'}">${correct ? 'Correct!' : 'Not quite!'}</h3>
-        <p>${explanation}</p>
-        <button class="btn-primary" id="overlayBtn" style="background:${correct ? 'linear-gradient(135deg,#4CAF50,#2E7D32)' : '#ef5350'}">Continue →</button>
-      </div>
-    </div>`;
-  $('overlayBtn').onclick = onNext;
-  $('overlayBg').onclick = onNext;
-}
-
-function hideOverlay() { $('overlay-container').innerHTML = ''; }
-
-// ─── WELCOME ───
-function showWelcome() {
-  clearAllScreens(); hideTracker();
-  currentRound = 0; roundScores = [];
-  let items = ROUNDS.map((r, i) =>
-    `<div class="round-item anim-grow" style="animation-delay:${i*0.1}s">
-      <span class="emoji">${r.icon}</span>
-      <div><div class="label">Round ${i+1}</div><div class="sublabel">${r.title}</div></div>
-    </div>`
-  ).join('');
-
-  $('screen-welcome').innerHTML = `
-    <div class="anim-slideup" style="text-align:center">
-      <div style="font-size:80px;margin-bottom:8px" class="anim-bounce">🌳</div>
-      <h2 style="font-size:28px;font-family:'Fredoka',sans-serif;color:#1B5E20;margin-bottom:8px">Welcome, Explorer!</h2>
-      <p style="font-size:15px;color:#555;margin-bottom:8px;line-height:1.5">Test your knowledge about seeds, germination, and plant care across <strong>5 exciting rounds</strong>.</p>
-      <p style="font-size:13px;color:#888;margin-bottom:24px">Whyte Pyramid Academy • Year 3 Science</p>
-      <div class="round-list">${items}</div>
-      <button class="btn-primary big pulse" onclick="startGame()">Start Game 🚀</button>
-    </div>`;
-}
-
-// ─── ROUND INTRO ───
-function showRoundIntro() {
-  clearAllScreens(); showTracker();
-  const r = ROUNDS[currentRound];
-  $('screen-roundIntro').innerHTML = `
-    <div class="anim-slideup" style="text-align:center;margin-top:20px">
-      <div class="card">
-        <div style="font-size:72px;margin-bottom:12px" class="anim-bounce">${r.icon}</div>
-        <p style="font-size:14px;color:#4CAF50;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Round ${currentRound+1} of ${ROUNDS.length}</p>
-        <h2 style="font-size:26px;font-family:'Fredoka',sans-serif;color:#1B5E20;margin-bottom:12px">${r.title}</h2>
-        <p style="font-size:15px;color:#666;margin-bottom:28px;line-height:1.5">${r.instruction}</p>
-        <button class="btn-primary" onclick="startRound()">Let's Go! 🌟</button>
-      </div>
-    </div>`;
-}
-
-// ─── START ───
-function startGame() { currentRound = 0; roundScores = []; showRoundIntro(); }
-function startRound() { roundQIdx = 0; roundScore = 0; clearAllScreens(); showTracker(); renderRound(); }
-
-function renderRound() {
-  switch(currentRound) {
-    case 0: renderMCQ(seedPartQuestions, '🌰', '#8D6E63', null); break;
-    case 1: renderDispersal(); break;
-    case 2: renderGermination(); break;
-    case 3: renderMCQ(plantNeedsQuestions, '☀️', '#FFC107', null); break;
-    case 4: renderTrueFalse(); break;
+  function loadQuestion() {
+    const q = quizData[currentQuestion];
+    questionEl.textContent = q.q;
+    optionsEl.innerHTML = '';
+    q.a.forEach((opt,i) => {
+      const li = document.createElement('li');
+      li.textContent = opt;
+      li.addEventListener('click', () => selectOption(li, i));
+      optionsEl.appendChild(li);
+    });
+    progressBar.style.width = `${(currentQuestion/totalQuestions)*100}%`;
   }
-}
 
-// ─── MCQ (Rounds 1 & 4) ───
-function renderMCQ(questions, emoji, barColor, _) {
-  const q = questions[roundQIdx];
-  const optColors = { default: { bg:'#FFF8E1', border:'#FFD54F' } };
-  if (currentRound === 3) { optColors.default = { bg:'#FFFDE7', border:'#FFD54F' }; }
+  function selectOption(li, index) {
+    const q = quizData[currentQuestion];
+    const lis = optionsEl.querySelectorAll('li');
+    lis.forEach(l => l.classList.remove('animate'));
+    li.classList.add('animate');
+    if(index === q.correct) {
+      li.classList.add('correct');
+      score++;
+    } else {
+      li.classList.add('wrong');
+      lis[q.correct].classList.add('correct');
+    }
+    lis.forEach(l => l.style.pointerEvents = 'none');
+  }
 
-  let optionsHTML = q.options.map((opt, i) =>
-    `<button class="btn-option" id="opt${i}"
-      style="background:${optColors.default.bg};border:2px solid ${optColors.default.border};color:#3E2723"
-      onclick="handleMCQ(${i})">${opt}</button>`
-  ).join('');
-
-  $('screen-playing').innerHTML = `
-    <div class="game-card">
-      ${progressHTML(roundQIdx + 1, questions.length, barColor)}
-      <div style="text-align:center;margin-top:24px">
-        <div style="font-size:${currentRound===0?64:52}px;margin-bottom:8px">${emoji}</div>
-        <p style="font-size:${currentRound===0?18:17}px;color:#333;font-weight:700;line-height:1.4;margin-bottom:20px;padding:0 8px">${q.question}</p>
-        <div style="display:flex;flex-direction:column;gap:${currentRound===0?12:10}px;max-width:${currentRound===0?360:380}px;margin:0 auto">
-          ${optionsHTML}
-        </div>
-      </div>
-    </div>`;
-}
-
-function handleMCQ(idx) {
-  const questions = currentRound === 0 ? seedPartQuestions : plantNeedsQuestions;
-  const q = questions[roundQIdx];
-  const correct = idx === q.correct;
-  if (correct) roundScore++;
-
-  // Highlight answers
-  q.options.forEach((_, i) => {
-    const btn = $('opt' + i);
-    btn.disabled = true;
-    if (i === q.correct) { btn.style.background = '#C8E6C9'; btn.style.borderColor = '#4CAF50'; btn.style.transform = 'scale(1.03)'; }
-    else { btn.style.background = '#FFCDD2'; btn.style.borderColor = '#ef5350'; }
+  nextBtn.addEventListener('click', () => {
+    currentQuestion++;
+    if(currentQuestion < totalQuestions) {
+      loadQuestion();
+    } else {
+      showResult();
+    }
   });
 
-  showOverlay(correct, q.explanation, () => {
-    hideOverlay();
-    roundQIdx++;
-    if (roundQIdx < questions.length) { renderRound(); }
-    else { finishRound(roundScore, questions.length); }
-  });
-}
-
-// ─── DISPERSAL (Round 2) ───
-function renderDispersal() {
-  const q = dispersalQuestions[roundQIdx];
-  let grid = q.options.map((opt, i) =>
-    `<button class="btn-option" id="dopt${i}"
-      style="background:#E8F5E9;border:2px solid #81C784;color:#2E7D32"
-      onclick="handleDispersal(${i})">${opt}</button>`
-  ).join('');
-
-  $('screen-playing').innerHTML = `
-    <div class="game-card">
-      ${progressHTML(roundQIdx + 1, dispersalQuestions.length, '#29B6F6')}
-      <div style="text-align:center;margin-top:24px">
-        <div style="font-size:56px;margin-bottom:4px">${q.emoji}</div>
-        <p style="font-size:15px;color:#888;margin-bottom:4px">How does this seed travel?</p>
-        <h3 style="font-size:24px;font-family:'Fredoka',sans-serif;color:#1B5E20;margin-bottom:20px">${q.seed}</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:380px;margin:0 auto">
-          ${grid}
-        </div>
-      </div>
-    </div>`;
-}
-
-function handleDispersal(idx) {
-  const q = dispersalQuestions[roundQIdx];
-  const correct = idx === q.correct;
-  if (correct) roundScore++;
-
-  q.options.forEach((_, i) => {
-    const btn = $('dopt' + i);
-    btn.disabled = true;
-    if (i === q.correct) { btn.style.background = '#C8E6C9'; btn.style.borderColor = '#4CAF50'; }
-    else { btn.style.background = '#fff'; btn.style.borderColor = '#ddd'; }
-  });
-
-  showOverlay(correct, q.explanation, () => {
-    hideOverlay();
-    roundQIdx++;
-    if (roundQIdx < dispersalQuestions.length) { renderRound(); }
-    else { finishRound(roundScore, dispersalQuestions.length); }
-  });
-}
-
-// ─── GERMINATION (Round 3) ───
-function renderGermination() {
-  if (roundQIdx === 0 && !germChecked) {
-    germSlots = [null,null,null,null];
-    germAvailable = shuffle(germinationStages);
-    germChecked = false;
-    germScore = 0;
+  function showResult() {
+    questionEl.style.display = 'none';
+    optionsEl.style.display = 'none';
+    nextBtn.style.display = 'none';
+    progressBar.style.width = '100%';
+    resultEl.innerHTML = `You scored ${score} out of ${totalQuestions}! 🎉`;
   }
 
-  let slotsHTML = [0,1,2,3].map(i => {
-    const stage = germSlots[i];
-    let cls = stage ? 'filled' : 'empty';
-    let numBg = '#81C784';
-    if (germChecked && stage) {
-      cls = stage.correctOrder === i ? 'right' : 'wrong-slot';
-      numBg = stage.correctOrder === i ? '#4CAF50' : '#ef5350';
-    } else if (germChecked) { numBg = '#bbb'; }
-
-    return `<div class="germ-slot ${cls}" onclick="removeSlot(${i})">
-      <div class="slot-num" style="background:${numBg}">${i+1}</div>
-      ${stage
-        ? `<span style="font-size:14px;font-weight:600;color:#333">${stage.emoji} ${stage.label}</span>`
-        : `<span style="font-size:14px;color:#aaa;font-style:italic">Tap a card below...</span>`}
-    </div>`;
-  }).join('');
-
-  let availHTML = '';
-  if (!germChecked) {
-    availHTML = '<div class="germ-avail">' + germAvailable.map(s =>
-      `<button class="germ-chip" onclick="placeStage('${s.id}')">${s.emoji} ${s.label}</button>`
-    ).join('') + '</div>';
-  }
-
-  let allFilled = germSlots.every(s => s !== null);
-  let actionHTML = '';
-  if (!germChecked && allFilled) {
-    actionHTML = '<div style="text-align:center"><button class="btn-primary" onclick="checkGermination()">Check My Order ✓</button></div>';
-  }
-  if (germChecked) {
-    const msg = germScore === 4 ? '🎉 Perfect order!' : `You got ${germScore}/4 in the right position.`;
-    const msgColor = germScore === 4 ? '#2E7D32' : '#F57F17';
-    actionHTML = `<div style="text-align:center;margin-top:8px">
-      <p style="font-size:18px;font-family:'Fredoka',sans-serif;color:${msgColor};margin-bottom:12px">${msg}</p>
-      <p style="font-size:14px;color:#666;margin-bottom:16px;line-height:1.5">Correct order: 💧 Absorb water → ⬇️ Root grows down → ⬆️ Shoot grows up → 🌿 Leaves open</p>
-      <button class="btn-primary" onclick="finishRound(${germScore}, 4)">Continue →</button>
-    </div>`;
-  }
-
-  $('screen-playing').innerHTML = `
-    <div class="game-card">
-      <p style="font-size:15px;color:#555;text-align:center;margin-bottom:16px">
-        Tap a stage card, then it fills the next slot. Tap a filled slot to remove it.
-      </p>
-      <div class="germ-slots">${slotsHTML}</div>
-      ${availHTML}
-      ${actionHTML}
-    </div>`;
-}
-
-function placeStage(id) {
-  if (germChecked) return;
-  const nextEmpty = germSlots.indexOf(null);
-  if (nextEmpty === -1) return;
-  const stage = germAvailable.find(s => s.id === id);
-  if (!stage) return;
-  germSlots[nextEmpty] = stage;
-  germAvailable = germAvailable.filter(s => s.id !== id);
-  renderGermination();
-}
-
-function removeSlot(idx) {
-  if (germChecked) return;
-  const stage = germSlots[idx];
-  if (!stage) return;
-  germSlots[idx] = null;
-  germAvailable.push(stage);
-  renderGermination();
-}
-
-function checkGermination() {
-  germScore = 0;
-  germSlots.forEach((s, i) => { if (s && s.correctOrder === i) germScore++; });
-  germChecked = true;
-  renderGermination();
-}
-
-// ─── TRUE/FALSE (Round 5) ───
-function renderTrueFalse() {
-  const q = trueFalseQuestions[roundQIdx];
-  $('screen-playing').innerHTML = `
-    <div class="game-card">
-      ${progressHTML(roundQIdx + 1, trueFalseQuestions.length, '#66BB6A')}
-      <div style="text-align:center;margin-top:28px">
-        <div style="font-size:52px;margin-bottom:12px">🌻</div>
-        <div class="tf-statement">
-          <p style="font-size:17px;color:#333;font-weight:700;line-height:1.5">"${q.statement}"</p>
-        </div>
-        <div class="tf-buttons">
-          <button class="btn-tf" id="tfTrue"
-            style="background:#E8F5E9;border:3px solid #81C784;color:#2E7D32"
-            onclick="handleTF(true)">✅ TRUE</button>
-          <button class="btn-tf" id="tfFalse"
-            style="background:#FFEBEE;border:3px solid #ef9a9a;color:#c62828"
-            onclick="handleTF(false)">❌ FALSE</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function handleTF(val) {
-  const q = trueFalseQuestions[roundQIdx];
-  const correct = val === q.answer;
-  if (correct) roundScore++;
-
-  const trueBtn = $('tfTrue'), falseBtn = $('tfFalse');
-  trueBtn.disabled = true; falseBtn.disabled = true;
-
-  if (q.answer === true) {
-    trueBtn.style.background = '#C8E6C9'; trueBtn.style.borderColor = '#4CAF50';
-    falseBtn.style.background = '#FFCDD2'; falseBtn.style.borderColor = '#ef5350';
-  } else {
-    falseBtn.style.background = '#C8E6C9'; falseBtn.style.borderColor = '#4CAF50';
-    trueBtn.style.background = '#FFCDD2'; trueBtn.style.borderColor = '#ef5350';
-  }
-
-  showOverlay(correct, q.explanation, () => {
-    hideOverlay();
-    roundQIdx++;
-    if (roundQIdx < trueFalseQuestions.length) { renderRound(); }
-    else { finishRound(roundScore, trueFalseQuestions.length); }
-  });
-}
-
-// ─── ROUND RESULT ───
-function finishRound(score, total) {
-  roundScores.push({ round: currentRound, score, total });
-  clearAllScreens(); showTracker();
-  const r = ROUNDS[currentRound];
-  const pct = score / total;
-  const msg = score === total ? 'Perfect score! 🎉' : pct >= 0.6 ? 'Well done! Keep going! 👏' : 'Good effort! Let\'s keep learning! 💪';
-  const btnLabel = currentRound + 1 < ROUNDS.length ? 'Next Round →' : 'See Results 🏆';
-
-  $('screen-roundResult').innerHTML = `
-    <div class="anim-slideup" style="text-align:center;margin-top:20px">
-      <div class="card">
-        <p style="font-size:14px;color:#888;font-weight:600;margin-bottom:8px">Round ${currentRound+1} Complete!</p>
-        <h2 style="font-size:26px;font-family:'Fredoka',sans-serif;color:#1B5E20;margin-bottom:16px">${r.title} ${r.icon}</h2>
-        ${starsHTML(score, total)}
-        <p style="font-size:36px;font-family:'Fredoka',sans-serif;color:#2E7D32;margin:16px 0 4px">${score}/${total}</p>
-        <p style="font-size:14px;color:#888;margin-bottom:28px">${msg}</p>
-        <button class="btn-primary" onclick="nextRound()">${btnLabel}</button>
-      </div>
-    </div>`;
-}
-
-function nextRound() {
-  // Reset germination state for next game
-  germChecked = false; germScore = 0;
-  if (currentRound + 1 < ROUNDS.length) {
-    currentRound++;
-    showRoundIntro();
-  } else {
-    showFinal();
-  }
-}
-
-// ─── FINAL ───
-function showFinal() {
-  clearAllScreens(); hideTracker();
-  const totalScore = roundScores.reduce((a, r) => a + r.score, 0);
-  const totalQ = roundScores.reduce((a, r) => a + r.total, 0);
-  const pct = Math.round((totalScore / totalQ) * 100);
-  const finalMsg = pct >= 90 ? "Outstanding! You're a true Plant Expert! 🌟"
-    : pct >= 70 ? "Well done! You know your plants really well! 🌿"
-    : pct >= 50 ? "Good work! Review the slides and try again to improve! 📚"
-    : "Keep learning! Read through the slides and give it another go! 💪";
-
-  let breakdown = roundScores.map((rs, i) => {
-    const perfect = rs.score === rs.total;
-    const badge = perfect ? '⭐' : rs.score >= rs.total * 0.6 ? '👍' : '📖';
-    const scoreColor = perfect ? '#2E7D32' : '#F57F17';
-    return `<div class="breakdown-row anim-grow" style="animation-delay:${i*0.1}s">
-      <div class="left"><span>${ROUNDS[i].icon}</span><span>${ROUNDS[i].title}</span></div>
-      <div class="right"><span class="breakdown-score" style="color:${scoreColor}">${rs.score}/${rs.total}</span><span>${badge}</span></div>
-    </div>`;
-  }).join('');
-
-  $('screen-final').innerHTML = `
-    <div class="anim-slideup" style="text-align:center">
-      <div class="card">
-        <div style="font-size:64px;margin-bottom:8px">🏆</div>
-        <h2 style="font-size:28px;font-family:'Fredoka',sans-serif;color:#1B5E20;margin-bottom:4px">Game Complete!</h2>
-        <p style="font-size:13px;color:#888;margin-bottom:16px">Whyte Pyramid Academy • Year 3 Science</p>
-        ${starsHTML(totalScore, totalQ)}
-        <div class="gradient-box">
-          <p style="font-size:42px;font-family:'Fredoka',sans-serif;color:#1B5E20;margin-bottom:4px">${totalScore}/${totalQ}</p>
-          <p style="font-size:14px;color:#4CAF50;font-weight:600">${pct}% correct</p>
-        </div>
-        <div class="breakdown">${breakdown}</div>
-        <p style="font-size:15px;color:#555;margin-bottom:20px;line-height:1.5;font-style:italic">${finalMsg}</p>
-        <button class="btn-primary" onclick="showWelcome()">Play Again 🔄</button>
-      </div>
-    </div>`;
-}
-
-// ─── INIT ───
-showWelcome();
+  loadQuestion();
+  startTimer(1200); // 20 mins = 1200 seconds
 </script>
+
 </body>
 </html>
